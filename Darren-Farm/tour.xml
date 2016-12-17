@@ -1,0 +1,771 @@
+﻿<krpano version="1.19" title="農場風景">
+
+  <include url="../../landscape_total/skin/vtourskin.xml" />
+  <include url="../../landscape_total/skin/loadingpercenttext.xml" />
+  <!-- <include url="skin/loadinganimation.xml" /> -->
+  <!-- customize skin settings: maps, gyro, webvr, thumbnails, tooltips, layout, design, ... -->
+  <skin_settings maps="false"
+	               maps_type="google"
+	               maps_bing_api_key=""
+	               maps_google_api_key="AIzaSyBKM2wiPrOeunR1SSpJtTB-GdXb0M-QYPs"
+	               maps_zoombuttons="false"
+	               gyro="true"
+	               webvr="true"
+	               webvr_gyro_keeplookingdirection="false"
+	               littleplanetintro="true"
+	               title="true"
+	               thumbs="false"
+	               thumbs_width="75" thumbs_height="40" thumbs_padding="10" thumbs_crop="0|40|240|160"
+	               thumbs_opened="true"
+	               thumbs_text="true"
+	               thumbs_dragging="true"
+	               thumbs_onhoverscrolling="false"
+	               thumbs_scrollbuttons="false"
+	               thumbs_scrollindicator="false"
+	               thumbs_loop="false"
+	               tooltips_buttons="false"
+	               tooltips_thumbs="false"
+	               tooltips_hotspots="false"
+	               tooltips_mapspots="false"
+	               deeplinking="false"
+	               loadscene_flags="MERGE"
+	               loadscene_blend="OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)"
+	               loadscene_blend_prev="SLIDEBLEND(0.5, 180, 0.75, linear)"
+	               loadscene_blend_next="SLIDEBLEND(0.5,   0, 0.75, linear)"
+	               loadingtext=""
+	               layout_width="100%"
+	               layout_maxwidth="814"
+	               controlbar_width="-24"
+	               controlbar_height="40"
+	               controlbar_offset="10"
+	               controlbar_offset_closed="0"
+	               controlbar_overlap.no-fractionalscaling="10"
+	               controlbar_overlap.fractionalscaling="0"
+	               design_skin_images="vtourskin.png"
+	               design_bgcolor="0x151515"
+	               design_bgalpha="0.8"
+	               design_bgborder="0"
+	               design_bgroundedge="1"
+	               design_bgshadow="0 4 10 0x000000 0.3"
+	               design_thumbborder_bgborder="3 0xFFFFFF 1.0"
+	               design_thumbborder_padding="2"
+	               design_thumbborder_bgroundedge="0"
+	               design_text_css="color:#FFFFFF; font-family:Arial;font-weight:bold;"
+	               design_text_shadow="1"
+	               />
+  <include url="skin/vtourskin_design_glass.xml"       if="design === 'glass'"       />
+  <include url="skin/vtourskin_design_flat.xml"        if="design === 'flat'"        />
+  <include url="skin/vtourskin_design_flat_light.xml"  if="design === 'flat_light'"  />
+  <include url="skin/vtourskin_design_ultra_light.xml" if="design === 'ultra_light'" />
+  <include url="skin/vtourskin_design_117.xml"         if="design === '117'"         />
+  <!-- startup action - load the first scene -->
+  <action name="startup" autorun="onstart">
+    if(startscene === null OR !scene[get(startscene)], copy(startscene,scene[0].name); );
+    loadscene(get(startscene), null, MERGE);
+    if(startactions !== null, startactions() );
+  </action>
+  <!-- 地圖開始，-->
+  <layer name="mapcontainer" keep="true" type="container" bgcolor="0x000000" bgalpha="0.5" align="lefttop" x="0" y="0" width="264" height="264">
+    <layer name="map" url="skin/b1map.png" align="top" x="4" y="4" width="prop" height="256" handcursor="false" scalechildren="true">
+      <!-- 雷達 -->
+      <layer name="radarmask" type="container" align="lefttop" width="100%" height="100%" maskchildren="true">
+
+        <!-- 雷達  隱藏 -->
+        <layer name="radar" visible="false"
+				       url="%SWFPATH%/plugins/radar.swf" alturl="%SWFPATH%/plugins/radar.js"
+				       align="lefttop" edge="center" zorder="1"
+				       scale="0.3"
+				       fillcolor="0xFFFFFF" fillalpha="0.8"
+				       linecolor="0xFF0000" linewidth="0.5" linealpha="0.5"
+				       headingoffset="0"
+				       />
+        <!-- 熱點  0開始-->
+        <layer name="spot0" style="spot" x="39" y="50"  />
+        <layer name="spot1" style="spot" x="94" y="30"  />
+        <layer name="spot2" style="spot" x="150"  y="39"   />
+        <layer name="spot3" style="spot" x="150" y="135"  />
+        <layer name="spot4" style="spot" x="40" y="150"  />
+        <layer name="spot5" style="spot" x="165" y="250"  />
+        <layer name="spot6" style="spot" x="40" y="230"  />
+
+        <!-- 熱點 3 綠色 當前的場景-->
+        <layer name="activespot" url="../../landscape_total/skin/vtourskin_mapspotactive.png" scale="0.5" oy="-17" align="lefttop" edge="center" zorder="3" visible="false"/>
+      </layer>
+    </layer>
+  </layer>
+  <!-- check subtxt again-->
+  <style name="spot" url="../../landscape_total/skin/vtourskin_mapspot.png" scale="0.5" oy="-17" align="lefttop" edge="center" zorder="2" onclick="subtxt(spotid,get(name),4,2);if(spotid != scene[get(xml.scene)].index,  
+  loadscene(get(scene[get(spotid)].name),null,MERGE,BLEND(1)); );" />
+  <!-- 熱點 方向值 -->
+  <action name="activatespot">
+    for(set(i,0),i LT scene.count,inc(i),
+    txtadd(spotname,'spot',get(i));
+    set(layer[get(spotname)].visible, true);
+    );
+    txtadd(spotidnow,'spot',get(scene[get(xml.scene)].index));
+    copy(layer[radar].x, layer[get(spotidnow)].x);
+    copy(layer[radar].y, layer[get(spotidnow)].y);
+    copy(layer[activespot].x, layer[get(spotidnow)].x);
+    copy(layer[activespot].y, layer[get(spotidnow)].y);
+    set(layer[radar].heading, %1);
+    set(layer[radar].visible, true);
+    set(layer[activespot].visible, true);
+    set(layer[get(spotidnow)].visible, false);
+  </action>
+  <scene name="scene_IMG_1"  title="客服中心" onstart="activatespot(90);delayedcall(2.0, normalview());" thumburl="panos/IMG_1.tiles/thumb.jpg" lat="" lng="" heading="">
+    <view hlookat="70.798" vlookat="-1.317" fovtype="MFOV" fov="120.000" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+    <preview url="panos/IMG_1.tiles/preview.jpg" />
+    <image>
+      <cube url="panos/IMG_1.tiles/pano_%s.jpg" />
+      <cube url="panos/IMG_1.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+    <!-- place your scene hotspots here -->
+    <hotspot name="spot1" linkedscene="scene_landscape_n2" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="97.197" atv="4.498" onclick="skin_gotoscene(1)" />
+    <hotspot name="spot4" style="skin_hotspotstyle" ath="97.197" atv="4.498" linkedscene="scene_landscape_n2" />
+    <!--insert-->
+    <hotspot name="spot1191" style="normalhs" url="img/Species/Pangolin.png" ath="-164.905" atv="12.367" zoom="true"
+             onhover="showtext(穿山甲);"
+             onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <data name="dt_1191_1">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+4">
+            <b>穿山甲</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/Pangolin.png" width="125" height="150" align="right"/>
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              物種名稱：穿山甲
+              <br/>
+              大小25-28CM。
+              <br/>
+              介紹：穿山甲屬於鱗甲目、穿山甲科、穿山甲屬，通稱鯪鯉。
+              穿山甲是一類從頭到尾披覆鱗片的食蟻動物，遇到他可是要有一定的運氣呢!!!
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>稀有穿山甲</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+      <!--insert-->
+  </scene>
+  <scene name="scene_landscape_n2" title="天堂路"  onstart="activatespot(90)" thumburl="panos/IMG_2.tiles/thumb.jpg" lat="" lng="" heading="">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+    <preview url="panos/IMG_2.tiles/preview.jpg" />
+
+    <image>
+      <cube url="panos/IMG_2.tiles/pano_%s.jpg" />
+      <cube url="panos/IMG_2.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+    <!-- place your scene hotspots here -->
+    <hotspot name="spot1" style="skin_hotspotstyle" ath="135.381" atv="-2.295" linkedscene="scene_img_1" />
+    <hotspot name="spot11" linkedscene="scene_IMG_1" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="135.381" atv="-2.295" onclick="skin_gotoscene(0)"/>
+    <hotspot name="spot2" style="skin_hotspotstyle" ath="-106.204" atv="-0.117" linkedscene="scene_img_3" />
+    <hotspot name="spot22" linkedscene="scene_IMG_3" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"  ath="-106.204" atv="-0.117"  onclick="skin_gotoscene(2)"/>
+
+    <!--insert-->
+    <hotspot name="spot1191" style="normalhs" url="img/Species/Colored-Bird.png" ath="-51.471" atv="-44.258" zoom="true"
+             onhover="showtext(五色鳥);"
+             onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <data name="dt_1191_1">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+4">
+            <b>五色鳥</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/Colored-Bird.png" width="125" height="150" align="right"/>
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              物種名稱：五色鳥
+              <br/>
+              大小10~20CM。
+              <br/>
+              介紹：台灣擬啄木，因其羽毛有五種顏色而得名。 身長約20～23公分，喙基上黑色嘴鬚發達，身體多為翠綠色，頭部大部份為藍色，
+              額頭和喉部有黃色分布，眼先和前頸有小部份紅色，眼部至耳羽上方則為黑色，粗厚嘴部為黑色，腳鉛灰色
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>稀有五色鳥</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+
+    <hotspot name="spot4" style="normalhs" url="img/Species/white-view.png" ath="1.318" atv="-10.929" zoom="true"
+         onhover="showtext(導覽版);"
+         onclick="action(act_show_info, view_broad, 1, 410);"/>
+    <data name="view_broad">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+1">
+            <b>導覽版</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/sence2.jpg" width="420" height="400"  />
+
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    <!--insert-->
+  </scene>
+
+  <scene name="scene_IMG_3" title="導覽刊版"  onstart="activatespot(90)" thumburl="panos/IMG_3.tiles/thumb.jpg" lat="22.26412778" lng="120.82397222" heading="0.0">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+    <preview url="panos/IMG_3.tiles/preview.jpg" />
+
+    <image>
+      <cube url="panos/IMG_3.tiles/pano_%s.jpg" />
+
+      <cube url="panos/IMG_3.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+
+    <!-- place your scene hotspots here -->
+    <hotspot name="spot1" style="skin_hotspotstyle" ath="-147.241" atv="-0.496" linkedscene="scene_landscape_n2" />
+    <hotspot name="spot11" linkedscene="scene_landscape_n2" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"  ath="-147.241" atv="-0.496" onclick="skin_gotoscene(1)"/>
+    <hotspot name="spot2" style="skin_hotspotstyle" ath="31.199" atv="6.211" linkedscene="scene_img_4" />
+    <hotspot name="spot22" linkedscene="scene_IMG_4" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"  ath="31.199" atv="6.211" onclick="skin_gotoscene(3)"/>
+
+    <!--insert-->
+    <hotspot name="spot1191" style="normalhs" url="img/Species/Frogs.png" ath="-178.786" atv="37.396" zoom="true"
+             onhover="showtext(莫氏樹蛙);"
+             onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <data name="dt_1191_1">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+4">
+            <b>莫氏樹蛙</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/Frogs.png" width="125" height="150" align="right"/>
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              物種名稱：莫氏樹蛙
+              <br/>
+              大小5~10CM。
+              <br/>
+              介紹：莫氏樹蛙是台灣淺山地區最常見的綠色樹蛙，分布也最廣泛，成體的大小約4-5公分。別名台灣樹蛙，是台灣特有物種 。由於樹蛙科的兩棲類對於棲息地的變化敏感，所有的樹蛙幾乎都列名台灣保育類的動物名錄中，而大規模的棲息環境變動也幾乎造成蛙類滅絕的大禍而不自知。
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>稀有莫氏樹蛙</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+
+    <hotspot name="spot4" style="normalhs" url="img/Species/white-view.png"  ath="-4.337" atv="2.737" zoom="true"
+     onhover="showtext(導覽版);"
+     onclick="action(act_show_info, view_broad, 1, 410);"/>
+    <data name="view_broad">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+1">
+            <b>導覽版</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/sence3.jpg" width="420" height="400"  />
+
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    <!--insert-->
+  </scene>
+
+  <scene name="scene_IMG_4" title="氣象站外" onstart="activatespot(90)" thumburl="panos/IMG_4.tiles/thumb.jpg" lat="22.26433889" lng="120.82399444" heading="0.0">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+    <preview url="panos/IMG_4.tiles/preview.jpg" />
+
+    <image>
+      <cube url="panos/IMG_4.tiles/pano_%s.jpg" />
+
+      <cube url="panos/IMG_4.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+
+    <!-- place your scene hotspots here -->
+    <hotspot name="spot1" style="skin_hotspotstyle" ath="-148.467" atv="0.949" linkedscene="scene_img_3" />
+    <hotspot name="spot11" linkedscene="scene_img_3" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="-148.467" atv="0.949" onclick="skin_gotoscene(2)"/>
+    <hotspot name="spot2" style="skin_hotspotstyle" ath="-91.330" atv="11.342" linkedscene="scene_img_5" />
+    <hotspot name="spot22" linkedscene="scene_img_5" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"  ath="-91.330" atv="11.342" onclick="skin_gotoscene(4)"/>
+    <hotspot name="spot3" style="skin_hotspotstyle" ath="28.643" atv="8.161" linkedscene="scene_img_6" />
+    <hotspot name="spot33" linkedscene="scene_img_6" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="28.643" atv="8.161" onclick="skin_gotoscene(5)"/>
+    <!--insert-->
+    <hotspot name="spot1191" style="normalhs" url="img/Species/ShanSu.png" ath="-60.146" atv="6.178" zoom="true"
+             onhover="showtext(山蘇);"
+             onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <hotspot name="spot20" style="normalhs" url="img/Species/ShanSu.png" ath="-56.723" atv="5.694" zoom="true"
+            onhover="showtext(山蘇);"
+            onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <hotspot name="spot21" style="normalhs" url="img/Species/ShanSu.png" ath="97.856" atv="14.379" zoom="true"
+         onhover="showtext(山蘇);"
+         onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <data name="dt_1191_1">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+4">
+            <b>山蘇</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/ShanSu.png" width="125" height="150" align="right"/>
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              物種名稱：山蘇
+              <br/>
+              大小5~10CM。
+              <br/>
+              介紹：山蘇幼嫩的新芽，早為原住民的食用野菜，有益人體健康，可預防貧血、高血壓及糖尿病，已逐漸成為餐廳的美食佳餚。食用山蘇採下後，在秋冬室溫下可放1至2天，夏天則最好冷藏，以維持品質。山蘇可以炒、燙、燴或煮食。因較不吸油，故可少放油，下鍋前可先經水燙，或用大火快炒方式風味較佳。山蘇可以搭配福菜、紅蘿蔔和蒟蒻，成為素食佳餚，也可拌炒牛肉、蝦仁或小魚干等多種變化。
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>山蘇</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+
+    <hotspot name="spot9" style="normalhs" url="img/Species/white-view.png"  ath="-12.137" atv="-3.973" zoom="true"
+ onhover="showtext(風向儀);"
+ onclick="action(act_show_info, view_broad, 1, 410);"/>
+    <data name="view_broad">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+1">
+            <b>風向儀</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/Wind-Direction.png" width="420" height="400"  />
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              名稱：風向儀
+              <br/>
+              <br/>
+              介紹：測量風向的工具，風向儀的箭頭永遠指向風的來源，其原理很簡單，箭尾受風面積比箭頭大，若箭頭及箭尾均受風，箭尾必會被風推後，使箭頭移往風的來源。
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>風向儀</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    <!--insert-->
+  </scene>
+
+  <scene name="scene_IMG_5" title="氣象站" onstart="activatespot(90)" thumburl="panos/IMG_5.tiles/thumb.jpg" lat="22.26432778" lng="120.82381944" heading="0.0">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+    <preview url="panos/IMG_5.tiles/preview.jpg" />
+
+    <image>
+      <cube url="panos/IMG_5.tiles/pano_%s.jpg" />
+
+      <cube url="panos/IMG_5.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+
+    <!-- place your scene hotspots here -->
+    <hotspot name="spot1" style="skin_hotspotstyle" ath="5.215" atv="8.147" linkedscene="scene_img_4" />
+    <hotspot name="spot11" linkedscene="scene_img_4" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="5.215" atv="8.147" onclick="skin_gotoscene(3)"/>
+
+    <!--insert-->
+    <hotspot name="spot9" style="normalhs" url="../../landscape_total/img/animatedhotspot_white.png"  ath="-175.609" atv="-0.563" zoom="true" onhover="showtext(風向儀);" onclick="action(act_show_info, view_broad, 1, 410);" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"/>
+    <data name="view_broad">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+1">
+            <b>三合院</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/sence5.jpg" width="420" height="400"  />
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              <br/>
+              <br/>
+              介紹：三合院為傳統建築，在三合院外設有氣象站，三合院為氣象觀測的辦公室，可以定時記錄氣候狀況。
+              <br/>
+              達仁辦公室：
+              <br/>
+              一進來就可清楚看見的建築物，關於登山或是林業開發還是學術研究的相關問題，都可來此詢問，這裡也提供住宿的申請，提供遠道而來的學者可短期間在此做研究。
+
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>三合院</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    <!--insert-->
+
+  </scene>
+
+  <scene name="scene_IMG_6" title="林下作物" onstart="activatespot(90)" thumburl="panos/IMG_6.tiles/thumb.jpg" lat="22.26431944" lng="120.82443889" heading="0.0">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+    <preview url="panos/IMG_6.tiles/preview.jpg" />
+
+    <image>
+      <cube url="panos/IMG_6.tiles/pano_%s.jpg" />
+
+      <cube url="panos/IMG_6.tiles/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+
+    <!-- place your scene hotspots here -->
+    <!--insert-->
+    <hotspot name="spot1191" style="normalhs" url="img/Species/Tung-Flowers.png" ath="-72.821" atv="10.582" zoom="true"
+             onhover="showtext(山蘇);"
+             onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <hotspot name="spot20" style="normalhs" url="img/Species/Tung-Flowers.png" ath="4.478" atv="50.315" zoom="true"
+            onhover="showtext(山蘇);"
+            onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <hotspot name="spot21" style="normalhs" url="img/Species/Tung-Flowers.png" ath="-3.707" atv="47.510" zoom="true"
+         onhover="showtext(山蘇);"
+         onclick="action(act_show_info, dt_1191_1, 1, 410);"/>
+    <data name="dt_1191_1">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+4">
+            <b>油桐樹(花)</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/Tung-Flowers.png" width="125" height="150" align="right"/>
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+              物種名稱：油桐樹(花)
+              <br/>
+              大小5~10CM。
+              <br/>
+              介紹：一般的花是在美麗過後逐漸枯黃凋萎而掉落，
+              油桐花卻是在最成熟美麗的那一天掉落凡塵，
+              這也是為什麼許多攝影師總愛拍掉落地面的油桐花，
+              因為...那正是它最美的時候。
+              有趣的是，這樣的美麗每天都是最新鮮的，
+              每朵油桐花都只有一天的壽命，
+              這些花朵，用最燦爛最美麗的生命點綴母株，
+              然後立即掉落，一朵接一朵，前仆後繼，為大地舖上五月雪！
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+                <i>油桐樹(花)</i>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    <!--insert-->
+		<hotspot name="spot4" style="skin_hotspotstyle" ath="130.275" atv="-0.711" linkedscene="scene_img_4" />
+    <hotspot name="spot11" linkedscene="scene_img_4" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="130.275" atv="-0.711"  onclick="skin_gotoscene(3)"/>
+
+    <hotspot name="spot5" style="skin_hotspotstyle" ath="-99.293" atv="-2.342" linkedscene="scene_landscape5" />
+    <hotspot name="spot22" linkedscene="scene_landscape5" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();" ath="-99.293" atv="-2.342" onclick="skin_gotoscene(6)"/>
+
+    <hotspot name="spot19" style="normalhs" url="../../landscape_total/img/animatedhotspot_white.png"   ath="-150.832" atv="-3.555" zoom="true" onhover="showtext(導覽版);" onclick="action(act_show_info, view_broad, 1, 410);" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"/>
+    <data name="view_broad">
+      <font face="Verdana,Trebuchet,Sans-serif">
+        <p>
+          <a href="event:action(act_hide_info);">
+            <img src="../../landscape_total/img/hide_info_white.gif" align="right"/>
+          </a>
+        </p>
+        <p>
+          <font size="+1">
+            <b>導覽版</b>
+          </font>
+        </p>
+        <p>
+          <img src="img/Species/sence6.jpg" width="420" height="400"  />
+          <textformat blockindent="4">
+            <span  style="line-height:25px;width:100px;height:25px;">
+           
+            </span>
+          </textformat>
+        </p>
+        <p align="right">
+          <font color="#FAAC58" size="+1">
+            <a href="" target="_blank">
+              <b>
+              </b>
+            </a>
+          </font>
+        </p>
+      </font>
+    </data>
+    
+  </scene>
+  <scene name="scene_landscape5" title="民宿" onstart="activatespot(90)"  thumburl="panos/landscape5/thumb.jpg"  lat="22.26431944" lng="120.82443889" heading="0.0">
+
+    <view hlookat="0" vlookat="0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto"/>
+
+    <preview url="panos/landscape5/preview.jpg" />
+    
+    <image>
+      <cube url="panos/landscape5/pano_%s.jpg" />
+
+      <cube url="panos/landscape5/mobile/pano_%s.jpg" devices="mobile" />
+    </image>
+
+    <!-- place your scene hotspots here -->
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="88.736" atv="0.704" linkedscene="scene_img_6" />
+    <hotspot name="spot11" linkedscene="scene_img_6" url="../../landscape_total/img/animatedhotspot_white.png" onloaded="do_crop_animation(64,64, 60); add_all_the_time_tooltip();"  ath="88.736" atv="0.704"  onclick="skin_gotoscene(5)"/>
+
+  </scene>
+
+  <autorotate enabled="false" waittime="0" speed="10.0" horizon="0.0" tofov="120" />
+  
+ <!---renwuvr-->
+  <action name="act_show_info" >
+    <!--顯示-->
+    if (webvr.isenabled , txtadd(tf_name, 'tf_', %1);set(plugin[%tf_name].visible, true); ,
+    if (%3 == null
+    , set(plugin[pi_txt_field_info].width, 310);
+    , set(plugin[pi_txt_field_info].width, %3);
+    );
+    set(plugin[pi_txt_field_info].html, data:%1);
+    set(plugin[pi_txt_field_info].visible, true);
+    if (%2 == 1,
+    set(plugin[pi_txt_field_info].bordercolor, 0xFFFFFF);
+    set(plugin[pi_txt_field_info].backgroundcolor, 0x000000);
+    set(plugin[pi_txt_field_info].glow, 10);
+    set(plugin[pi_txt_field_info].glowcolor, 0x444444);
+    set(plugin[pi_txt_field_info].alpha, 0.80);
+    set(plugin[pi_txt_field_info].css, 'p{color:#FFFFFF;}');
+    ,
+    set(plugin[pi_txt_field_info].bordercolor, 0x000000);
+    set(plugin[pi_txt_field_info].backgroundcolor, 0xFFFFFF);
+    set(plugin[pi_txt_field_info].glow, 10);
+    set(plugin[pi_txt_field_info].glowcolor, 0xAAAAAA);
+    set(plugin[pi_txt_field_info].alpha, 0.90);
+    set(plugin[pi_txt_field_info].css, 'p{color:#000000;}');
+    )
+    );
+  </action>
+  <action name="act_hide_info">
+    <!--隱藏-->
+    set(plugin[pi_overlay].visible, false);
+    set(plugin[pi_txt_field_info].visible, false);
+    set(plugin[pi_txt_field_info].html, "");
+    if (glst_auto_rotate, set(autorotate.enabled, true));
+  </action>
+  <action name="act_hide_image_info_box">
+    set(plugin[pi_overlay].visible, false); set(plugin[pi_hide_image_box].visible, false); set(plugin[pi_text_field_image].visible, false); set(plugin[pi_text_field_image].html, ""); if (glst_auto_rotate, set(autorotate.enabled, true));
+  </action>
+  <action name="act_hide_text_field">
+
+    set(plugin[pi_overlay].visible, false); set(plugin[%tf_name].visible, false); set(plugin[%tf_hide_name].visible, false); if (glst_auto_rotate, set(autorotate.enabled, true));
+  </action>
+  <plugin name="pi_txt_field_info" url="http://www.vrcan.com/krpano/plugins/textfield.swf" align="center" width="310" height="500" keep="true" x="0" y="0" html="" css="" visible="false" borderwidth="1" zorder="211" selectable="false" autosize="center" roundedge="4" background="true" glow="20" alpha="0.95"/>
+
+  <style name="normalhs" normal="false" onloaded="if(webvr.isenabled,set(visible,false),set(visible,true));"  />
+ 
+<!---renwuvr-->
+
+  <!-- @lanking -->
+  <action name="do_crop_animation">
+    <!-- add attributes to the hotspot -->
+    registerattribute(xframes, calc((imagewidth / %1) BOR 0));
+    registerattribute(yframes, calc((imageheight / %2) BOR 0));
+    registerattribute(frames, calc(xframes * yframes));
+    registerattribute(frame, 0);
+
+    set(crop, '0|0|%1|%2');
+
+    setinterval(calc('crop_anim_' + name), calc(4.0 / %3),
+    if(loaded,
+    inc(frame);
+    if(frame GE frames, if(onlastframe !== null, onlastframe() ); set(frame,0); );
+    mod(xpos, frame, xframes);
+    div(ypos, frame, xframes);
+    Math.floor(ypos);
+    mul(xpos, %1);
+    mul(ypos, %2);
+    calc(crop, xpos + '|' + ypos + '|%1|%2');
+    ,
+    clearinterval(calc('crop_anim_' + name));
+    );
+    );
+  </action>
+
+  <!-- @lanking -->
+  <action name="do_crop_animation2">
+    <!-- add attributes to the hotspot -->
+    registerattribute(xframes, calc((imagewidth / %1) BOR 0));
+    registerattribute(yframes, calc((imageheight / %2) BOR 0));
+    registerattribute(frames, calc(xframes * yframes));
+    registerattribute(frame, 0);
+
+    set(crop, '0|0|%1|%2');
+
+    setinterval(calc('crop_anim_' + name), calc(1.0 / %3),
+    if(loaded,
+    inc(frame);
+    if(frame GE frames, if(onlastframe !== null, onlastframe() ); set(frame,0); );
+    mod(xpos, frame, xframes);
+    div(ypos, frame, xframes);
+    Math.floor(ypos);
+    mul(xpos, %1);
+    mul(ypos, %2);
+    calc(crop, xpos + '|' + ypos + '|%1|%2');
+    ,
+    clearinterval(calc('crop_anim_' + name));
+    );
+    );
+  </action>
+
+  <!-- @lanking -->
+  <action name="add_all_the_time_tooltip">
+    txtadd(tooltipname, 'tooltip_', get(name));
+    addplugin(get(tooltipname));
+    txtadd(plugin[get(tooltipname)].parent, 'hotspot[', get(name), ']');
+    set(plugin[get(tooltipname)].url,'%SWFPATH%/plugins/textfield.swf');
+    set(plugin[get(tooltipname)].align,top);
+    set(plugin[get(tooltipname)].edge,bottom);
+    set(plugin[get(tooltipname)].x,0);
+    set(plugin[get(tooltipname)].y,0);
+    set(plugin[get(tooltipname)].autowidth,true);
+    set(plugin[get(tooltipname)].autoheight,true);
+    set(plugin[get(tooltipname)].vcenter,true);
+    set(plugin[get(tooltipname)].background,true);
+    set(plugin[get(tooltipname)].backgroundcolor,0x000000);
+    set(plugin[get(tooltipname)].roundedge,5);
+    set(plugin[get(tooltipname)].backgroundalpha,0.55);
+    set(plugin[get(tooltipname)].padding,4);
+    set(plugin[get(tooltipname)].border,false);
+    set(plugin[get(tooltipname)].glow,0);
+    set(plugin[get(tooltipname)].glowcolor,0xFFFFFF);
+    set(plugin[get(tooltipname)].css,'text-align:center; color:#FFFFFF; font-family:MicrosoftYahei Sans-serif;  font-size:10px;');
+    if(device.mobile,set(plugin[get(tooltipname)].css,'text-align:center; color:#FFFFFF; font-family:MicrosoftYahei Sans-serif; font-weight:normal; font-size:10px;');
+    );
+    set(plugin[get(tooltipname)].textshadow,0);
+    set(plugin[get(tooltipname)].textshadowrange,6.0);
+    set(plugin[get(tooltipname)].textshadowangle,90);
+    if(text == '' OR text === null,
+    copy(plugin[get(tooltipname)].html,scene[get(linkedscene)].title),
+    copy(plugin[get(tooltipname)].html,text)
+    );
+    set(plugin[get(tooltipname)].enabled,false);
+  </action>
+
+
+
+</krpano>

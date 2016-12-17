@@ -1,0 +1,16 @@
+﻿<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="css/threesixty.css">
+</head>
+<body>
+    <section class="container-fluid" id="container"> <div class="threesixty product1" align="left"> <div class="spinner"> <span>0%</span> </div><ol class="threesixty_images"></ol> </div></section>
+    <script src="../js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src='dist/threesixty.min.js'></script>
+    <script type="text/javascript">window.onload=init; var product; function init(){product1=$('.product1').ThreeSixty({totalFrames: 60, endFrame: 60, currentFrame: 1, imgList: '.threesixty_images', progress: '.spinner', imagePath: 'img/vegetables/', filePrefix: '', ext: '.png', height: 447, width: 500, navigation: true, responsive: true});}</script>
+</body>
+</html>
